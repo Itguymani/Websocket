@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Live Chat Sidebar</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #eaeaea;
+    }
+
+    #chat-container {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 350px;
+      height: 80vh;
+      background-color: #fff;
+      box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 20px;
+      color: #333;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0;
+      overflow-y: auto;
+      flex-grow: 1;
+    }
+
+    li {
+      padding: 10px 14px;
+      margin: 8px 0;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 15px;
+      max-width: 85%;
+    }
+
+    .incoming1 { background-color: #6bc5ff; }
+    .incoming2 { background-color: #ff6b6b; }
+    .outgoing {
+      background-color: #51d88a;
+      margin-left: auto;
+      text-align: right;
+    }
+
+    .input-area {
+      display: flex;
+      margin-top: 10px;
+    }
+
+    input {
+      flex-grow: 1;
+      padding: 8px;
+      font-size: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 8px 12px;
+      margin-left: 8px;
+      font-size: 15px;
+      border-radius: 8px;
+      border: none;
+      background-color: #333;
+      color: #fff;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <div>
+      <h2>💬 Live Chat</h2>
+      <ul></ul>
+    </div>
+    <div class="input-area">
+      <input type="text" placeholder="Type a message..." />
+      <button>Send</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+  <script>
+    const socket = io('ws://localhost:8080');
+    let toggle = true;
+
+    socket.on('message', text => {
+      const el = document.createElement('li');
+      el.textContent = text;
+      el.className = toggle ? 'incoming1' : 'incoming2';
+      toggle = !toggle;
+      document.querySelector('ul').appendChild(el);
+    });
+
+    document.querySelector('button').onclick = () => {
+      const input = document.querySelector('input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      socket.emit('message', text);
+
+      const el = document.createElement('li');
+      el.textContent = text;
+      el.className = 'outgoing';
+      document.querySelector('ul').appendChild(el);
+
+      input.value = '';
+    };
+  </script>
+</body>
+</html>

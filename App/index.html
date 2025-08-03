@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Live Chat Sidebar</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #eaeaea;
+    }
+
+    #chat-container {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 350px;
+      height: 80vh;
+      background-color: #dbd0d0;
+      box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 20px;
+      color: #333;
+    }
+
+    #chat-list {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0;
+      overflow-y: auto;
+      flex-grow: 1;
+      max-height: calc(100vh - 170px); /* Adjusted height to account for input + padding */
+      scrollbar-width: thin;
+      scrollbar-color: #ccc transparent;
+    }
+
+    #chat-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #chat-list::-webkit-scrollbar-thumb {
+      background-color: #ccc;
+      border-radius: 3px;
+    }
+
+    li {
+      padding: 10px 14px;
+      margin: 8px 0;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 15px;
+      max-width: 85%;
+      word-wrap: break-word;
+    }
+
+    .incoming1 { background-color: #dadddf; }
+    .incoming2 { background-color: #8b90a1; }
+    .outgoing {
+      background-color: #90d4ad;
+      margin-left: auto;
+      text-align: right;
+    }
+
+    .input-area {
+      display: flex;
+      margin-top: 10px;
+    }
+
+    input {
+      flex-grow: 1;
+      padding: 8px;
+      font-size: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 8px 12px;
+      margin-left: 8px;
+      font-size: 15px;
+      border-radius: 8px;
+      border: none;
+      background-color: #333;
+      color: #fff;
+      cursor: pointer;
+    }
+    @keyframes blink {
+    0%   { opacity: 1; }
+    50%  { opacity: 0.2; }
+    100% { opacity: 1; }
+    }
+
+    .blink {
+    animation: blink 0.6s ease-in-out 3; /* 3 blinks */
+    }
+
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <h2>💬 Live Chat</h2>
+    <ul id="chat-list"></ul>
+    <div class="input-area">
+      <input type="text" placeholder="Type a message..." />
+      <button>Send</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+  <script>
+    const socket = io('ws://localhost:8080');
+    const chatList = document.getElementById('chat-list');
+    let toggle = true;
+
+    socket.on('message', text => {
+      const el = document.createElement('li');
+      el.textContent = text;
+      el.className = toggle ? 'incoming1' : 'incoming2';
+      toggle = !toggle;
+      chatList.appendChild(el);
+      chatList.scrollTop = chatList.scrollHeight;
+    });
+
+    document.querySelector('button').onclick = () => {
+      const input = document.querySelector('input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      socket.emit('message', text);
+
+      const existingOutgoing = document.querySelector('.outgoing');
+      if (existingOutgoing) {
+        existingOutgoing.remove();
+      }
+
+      const el = document.createElement('li');
+      el.textContent = text;
+      el.className = 'outgoing';
+      el.classList.add('blink'); // Blink outgoing message too
+      chatList.insertBefore(el, chatList.firstChild);
+
+      input.value = '';
+      chatList.scrollTop = chatList.scrollHeight;
+    };
+  </script>
+</body>
+</html>

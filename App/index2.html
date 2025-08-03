@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WebSocket Chat</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f3f3;
+      padding: 20px;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      padding: 12px 16px;
+      margin: 10px 0;
+      border-radius: 12px;
+      font-size: 16px;
+      color: #fff;
+      max-width: 75%;
+    }
+
+    .incoming1 { background-color: #6bc5ff; }
+    .incoming2 { background-color: #ff6b6b; }
+    .outgoing {
+      background-color: #51d88a;
+      align-self: flex-end;
+      margin-left: auto;
+      text-align: right;
+    }
+
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin-right: 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h2>🗨️ Live Message Chat</h2>
+  <input type="text" placeholder="Type your message...">
+  <button>Send</button>
+  <ul></ul>
+
+  <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+  <script>
+    const socket = io('ws://localhost:8080');
+    let toggle = true;
+
+    socket.on('message', text => {
+      const el = document.createElement('li');
+      el.textContent = text;
+      el.className = toggle ? 'incoming1' : 'incoming2';
+      toggle = !toggle;
+      document.querySelector('ul').appendChild(el);
+    });
+
+    document.querySelector('button').onclick = () => {
+      const text = document.querySelector('input').value;
+      if (!text.trim()) return;
+
+      // emit the message
+      socket.emit('message', text);
+
+      // show user message with outgoing style
+      const el = document.createElement('li');
+      el.textContent = text;
+      el.className = 'outgoing';
+      document.querySelector('ul').appendChild(el);
+
+      document.querySelector('input').value = '';
+    };
+  </script>
+</body>
+</html>
